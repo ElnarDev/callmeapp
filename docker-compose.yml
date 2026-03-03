@@ -1,0 +1,33 @@
+# ===========================================
+# docker-compose.yml - CallMeApp
+# ===========================================
+# Este archivo define los servicios (contenedores)
+# que necesita el proyecto para funcionar.
+
+services:
+  # ─── Base de datos PostgreSQL ───────────────
+  postgres:
+    image: postgres:16-alpine        # Imagen oficial de PostgreSQL v16 (alpine = más liviana)
+    container_name: callmeapp_postgres
+    restart: unless-stopped          # Si el contenedor cae, se reinicia automáticamente
+    ports:
+      - "${POSTGRES_PORT}:5432"      # puerto_tu_maquina:puerto_contenedor
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # Los datos persisten aunque el contenedor se detenga
+      - ./api/scripts:/docker-entrypoint-initdb.d # Scripts SQL que se ejecutan al crear la BD por primera vez
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# ===========================================
+# Volumes: almacenamiento persistente
+# ===========================================
+volumes:
+  postgres_data:
+    name: callmeapp_postgres_data
