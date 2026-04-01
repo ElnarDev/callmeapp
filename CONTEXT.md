@@ -106,10 +106,50 @@ Definir el modelo de llamadas:
 
 ---
 
+## Sesión 3 — Fecha: 1 Abr 2026
+
+### Lo que se hizo
+
+- Se discutió Supabase (plan gratuito pausa proyectos) → se descartó, se continúa con Docker local.
+- Se inicializó el proyecto **NestJS** en `api/` con `nest new`.
+- Se instalaron dependencias: `@nestjs/typeorm`, `typeorm`, `pg`, `@nestjs/config`, `class-validator`, `class-transformer`, `@nestjs/mapped-types`.
+- Se configuró **TypeORM** con `synchronize: true` (modo desarrollo) leyendo variables del `.env`.
+- Se habilitó `ValidationPipe` global en `main.ts`.
+- Se creó el módulo completo de **Users** (entidad, DTOs, servicio, controlador).
+- Se creó el script SQL `api/scripts/V1__create_users_table.sql` con la tabla `users`, índices y trigger de `updated_at`.
+- Se corrigió error `TS5103` eliminando `ignoreDeprecations: "6.0"` del `tsconfig.json`.
+- Se corrigió error `TS2564` agregando el operador `!` en propiedades de entidades y DTOs.
+- Se configuró `.vscode/settings.json` para asociar `.sql` a `pgsql` (evita falsos positivos de MSSQL).
+- Se probó el CRUD completo de usuarios en Postman — funcionando correctamente en puerto **3800**.
+- Se instaló el template **Sakai de PrimeNG** en `web/` (Angular 21 + PrimeNG 21).
+- Se descargaron los assets del template (submódulo `sakai-assets`).
+- Frontend corriendo en puerto **4444**.
+
+### Endpoints del API Users
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/users` | Crear usuario |
+| GET | `/users` | Listar todos |
+| GET | `/users/:id` | Obtener uno por UUID |
+| PATCH | `/users/:id` | Actualizar parcialmente |
+| DELETE | `/users/:id` | Eliminar (204 No Content) |
+
+### Decisiones técnicas tomadas
+
+- Contraseña hasheada con SHA-256 en el servicio (bcrypt se implementará con auth)
+- `passwordHash` nunca se devuelve en las respuestas de la API
+- `synchronize: true` solo en desarrollo — se migrará a migraciones antes de producción
+- Template Sakai assets copiados directamente (sin submódulo git) para simplificar
+- Puertos: API=3800, Frontend=4444, PostgreSQL=5432
+
+---
+
 ## Próximos pasos
 
-- [ ] Decidir modelo de llamadas (Opción A o B)
-- [ ] Diseñar esquema completo de la BD
-- [ ] Crear script SQL inicial en `api/scripts/`
-- [ ] Inicializar proyecto NestJS en `api/`
-- [ ] Inicializar proyecto Angular en `web/`
+- [ ] Crear vista CRUD de Users en el frontend (Angular + Sakai)
+- [ ] Crear `UserService` en Angular con `HttpClient`
+- [ ] Habilitar CORS en el backend para peticiones desde `localhost:4444`
+- [ ] Conectar frontend ↔ backend (fullstack completo)
+- [ ] Definir esquema completo de BD: `call_sessions`, `refresh_tokens`
+- [ ] Implementar autenticación JWT

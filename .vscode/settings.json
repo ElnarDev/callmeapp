@@ -1,0 +1,11 @@
+{
+  // Asocia los archivos .sql de scripts con "plaintext" para que
+  // la extensión MSSQL no los valide con sintaxis de SQL Server
+  "files.associations": {
+    "**/api/scripts/*.sql": "pgsql"
+  },
+
+  // Desactiva diagnósticos de MSSQL para archivos sin conexión activa
+  "mssql.enableRichExperiences": false,
+  "mssql.intelliSense.enableIntelliSense": false
+}
