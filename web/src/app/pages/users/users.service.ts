@@ -1,33 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
-export interface User {
-    id: string;
-    username: string;
-    email: string;
-    avatarUrl?: string;
-    isOnline: boolean;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface CreateUserDto {
-    username: string;
-    email: string;
-    password: string;
-    avatarUrl?: string;
-}
-
-export interface UpdateUserDto {
-    username?: string;
-    email?: string;
-    password?: string;
-    avatarUrl?: string;
-}
+import { User } from './interfaces/user.interface';
+import { CreateUserDto } from './interfaces/create-user.interface';
+import { UpdateUserDto } from './interfaces/update-user.interface';
 
 @Injectable({ providedIn: 'root' })
-export class UserService {
+export class UsersService {
     private readonly http = inject(HttpClient);
     private readonly baseUrl = 'http://localhost:3800/users';
 

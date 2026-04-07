@@ -81,4 +81,21 @@ export class UsersService {
     await this.findOne(id); // Lanza 404 si no existe
     await this.usersRepository.delete(id);
   }
+
+  // Uso interno del módulo Auth — retorna la entidad completa incluyendo passwordHash
+  async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { email } });
+  }
+
+  // Uso interno del módulo Auth — busca por username
+  async findByUsername(username: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { username } });
+  }
+
+  // Uso interno — retorna entidad completa para obtener email en refresh de tokens
+  async findOneEntity(id: string): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException(`Usuario con id ${id} no encontrado`);
+    return user;
+  }
 }
