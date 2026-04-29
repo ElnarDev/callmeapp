@@ -4,8 +4,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 
 export interface JwtPayload {
-  sub: string;  // user id
+  sub: string;
   email: string;
+  username: string;
 }
 
 @Injectable()
@@ -21,6 +22,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   // Passport llama a este método después de verificar la firma del token.
   // Lo que retornamos aquí se asigna a request.user en cada request protegido.
   validate(payload: JwtPayload) {
-    return { id: payload.sub, email: payload.email };
+    return { userId: payload.sub, email: payload.email, username: payload.username };
   }
 }

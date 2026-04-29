@@ -47,7 +47,7 @@ export class UsersController {
 
   // DELETE /users/:id
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT) // Devuelve 204 en vez de 200 al borrar
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.remove(id);
   }

@@ -9,5 +9,12 @@
 
 .layout-main {
     flex: 1 1 auto;
-    padding-bottom: 2rem;
+}
+
+.layout-content {
+    background-color: var(--surface-overlay);
+    border-radius: var(--content-border-radius);
+    padding: 1.5rem;
+    min-height: calc(100vh - 8rem);
+    margin-bottom: 2rem;
 }

@@ -9,8 +9,13 @@ import { LayoutService } from '@/app/layout/service/layout.service';
     standalone: true,
     imports: [AppMenu, RouterModule],
     template: `
-        <div class="layout-sidebar">
-            <app-menu></app-menu>
+        <div class="layout-sidebar flex flex-col h-full">
+            <div class="flex-1 overflow-y-auto">
+                <app-menu></app-menu>
+            </div>
+            <div class="px-4 py-3 border-t border-surface-200 dark:border-surface-700">
+                <p class="text-surface-400 text-xs text-center">© 2026 CallMeApp</p>
+            </div>
         </div>
     `
 })

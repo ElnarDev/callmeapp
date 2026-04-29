@@ -6,9 +6,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('users') // Nombre de la tabla en PostgreSQL
+@Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid') // ID autogenerado tipo UUID
+  @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({ unique: true })
@@ -17,14 +17,11 @@ export class User {
   @Column({ unique: true })
   email!: string;
 
-  @Column({ name: 'password_hash' }) // El campo en BD se llama password_hash
+  @Column({ name: 'password_hash' })
   passwordHash!: string;
 
   @Column({ name: 'avatar_url', nullable: true })
   avatarUrl!: string;
-
-  @Column({ name: 'is_online', default: false })
-  isOnline!: boolean;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;

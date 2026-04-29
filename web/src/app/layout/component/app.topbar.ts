@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -6,6 +6,8 @@ import { StyleClassModule } from 'primeng/styleclass';
 import { AppConfigurator } from './app.configurator';
 import { LayoutService } from '@/app/layout/service/layout.service';
 import { AuthService } from '@/app/pages/auth/auth.service';
+import { PresenceService } from '@/app/pages/presence/presence.service';
+import { UserStatus } from '@/app/pages/users/interfaces/user.interface';
 
 @Component({
     selector: 'app-topbar',
@@ -66,9 +68,10 @@ import { AuthService } from '@/app/pages/auth/auth.service';
             <div class="layout-topbar-menu hidden lg:block">
                 <div class="layout-topbar-menu-content">
                     <div class="relative">
+                        <!-- Botón topbar: ícono user + LED badge -->
                         <button
                             type="button"
-                            class="layout-topbar-action gap-2 px-3"
+                            class="layout-topbar-action relative"
                             pStyleClass="@next"
                             enterFromClass="hidden"
                             enterActiveClass="animate-scalein"
@@ -76,31 +79,49 @@ import { AuthService } from '@/app/pages/auth/auth.service';
                             leaveActiveClass="animate-fadeout"
                             [hideOnOutsideClick]="true"
                         >
-                            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs shrink-0">
-                                {{ userInitials }}
-                            </div>
-                            <span class="hidden md:block text-sm font-medium text-surface-700 dark:text-surface-200">{{ currentUser?.username }}</span>
-                            <i class="pi pi-chevron-down text-xs text-surface-500"></i>
+                            <i class="pi pi-user"></i>
+                            <span
+                                class="block! absolute bottom-0.5 right-0.5 w-2.5 h-2.5 rounded-full border-2 border-(--surface-card)"
+                                [style.background-color]="statusColor(myStatus())"
+                            ></span>
                         </button>
-                        <div class="hidden absolute right-0 top-full mt-2 w-64 bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl shadow-lg z-50 overflow-hidden">
-                            <div class="px-4 py-4 border-b border-surface-200 dark:border-surface-700">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
-                                        {{ userInitials }}
-                                    </div>
-                                    <div class="overflow-hidden">
-                                        <p class="font-semibold text-surface-900 dark:text-surface-0 text-sm truncate">{{ currentUser?.username }}</p>
-                                        <p class="text-surface-500 text-xs truncate">{{ currentUser?.email }}</p>
-                                    </div>
+
+                        <!-- Popup -->
+                        <div class="hidden absolute right-0 top-full mt-3 w-72 bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-2xl shadow-xl z-50 overflow-hidden">
+                            <!-- Header -->
+                            <div class="px-5 py-5 flex flex-col items-center gap-3">
+                                <span class="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-primary-contrast text-xl font-bold leading-none select-none">
+                                    {{ userInitials }}
+                                </span>
+                                <div class="flex flex-col items-center gap-0.5">
+                                    <p class="font-semibold text-surface-900 dark:text-surface-0 text-base leading-tight">{{ currentUser?.username }}</p>
+                                    <p class="text-surface-400 text-sm leading-tight">{{ currentUser?.email }}</p>
                                 </div>
                             </div>
-                            <div class="px-2 py-2">
+
+                            <!-- Selector de estado -->
+                            <div class="h-px bg-surface-200 dark:bg-surface-700 mx-4"></div>
+                            <div class="px-3 py-2">
+                                <p class="text-xs font-semibold text-surface-400 uppercase tracking-wider px-2 py-1.5">Status</p>
+                                <button *ngFor="let opt of statusOptions" type="button"
+                                    class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm cursor-pointer transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
+                                    [class.font-semibold]="myStatus() === opt.value"
+                                    (click)="setStatus(opt.value)">
+                                    <span class="w-2.5 h-2.5 rounded-full shrink-0" [style.background-color]="opt.color"></span>
+                                    <span class="text-surface-700 dark:text-surface-200">{{ opt.label }}</span>
+                                    <i *ngIf="myStatus() === opt.value" class="pi pi-check ml-auto text-primary text-xs"></i>
+                                </button>
+                            </div>
+
+                            <!-- Sign Out -->
+                            <div class="h-px bg-surface-200 dark:bg-surface-700 mx-4"></div>
+                            <div class="px-3 py-3">
                                 <button
                                     type="button"
-                                    class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950 cursor-pointer transition-colors"
+                                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
                                     (click)="logout()"
                                 >
-                                    <i class="pi pi-sign-out"></i>
+                                    <i class="pi pi-sign-out text-base"></i>
                                     <span>Sign Out</span>
                                 </button>
                             </div>
@@ -111,11 +132,32 @@ import { AuthService } from '@/app/pages/auth/auth.service';
         </div>
     </div>`
 })
-export class AppTopbar {
+export class AppTopbar implements OnInit {
     items!: MenuItem[];
 
     layoutService = inject(LayoutService);
     authService = inject(AuthService);
+    presenceService = inject(PresenceService);
+
+    // El status del usuario actual derivado del mapa de presencia
+    myStatus = computed<UserStatus>(() => {
+        const userId = this.currentUser?.id;
+        if (!userId) return 'offline';
+        return this.presenceService.getStatus(userId);
+    });
+
+    private readonly STATUS_KEY = 'userStatus';
+
+    ngOnInit(): void {
+        // El status guardado se restaura automáticamente en PresenceService al conectar
+    }
+
+    readonly statusOptions: { label: string; value: UserStatus; color: string }[] = [
+        { label: 'Available',  value: 'available', color: '#22c55e' },
+        { label: 'Busy',       value: 'busy',      color: '#ef4444' },
+        { label: 'Away',       value: 'away',      color: '#f59e0b' },
+        { label: 'Offline',    value: 'offline',   color: '#94a3b8' },
+    ];
 
     get currentUser() {
         return this.authService.getCurrentUser();
@@ -124,6 +166,15 @@ export class AppTopbar {
     get userInitials(): string {
         const username = this.currentUser?.username ?? '';
         return username.slice(0, 2).toUpperCase();
+    }
+
+    statusColor(status: UserStatus): string {
+        return this.statusOptions.find(o => o.value === status)?.color ?? '#94a3b8';
+    }
+
+    setStatus(status: UserStatus): void {
+        localStorage.setItem(this.STATUS_KEY, status);
+        this.presenceService.setStatus(status);
     }
 
     toggleDarkMode() {

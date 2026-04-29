@@ -12,7 +12,7 @@
     [rows]="10"
     [paginator]="true"
     [globalFilterFields]="['username', 'email']"
-    [tableStyle]="{ 'min-width': '60rem' }"
+    [tableStyle]="{ 'min-width': '60rem', 'width': '100%' }"
     [rowHover]="true"
     dataKey="id"
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} users"
@@ -30,19 +30,16 @@
 
     <ng-template #header>
         <tr>
-            <th pSortableColumn="username" style="min-width: 14rem">
+            <th pSortableColumn="username" style="width: 25%">
                 Username <p-sortIcon field="username" />
             </th>
-            <th pSortableColumn="email" style="min-width: 18rem">
+            <th pSortableColumn="email" style="width: 45%">
                 Email <p-sortIcon field="email" />
             </th>
-            <th pSortableColumn="isOnline" style="min-width: 8rem">
-                Status <p-sortIcon field="isOnline" />
-            </th>
-            <th pSortableColumn="createdAt" style="min-width: 12rem">
+            <th pSortableColumn="createdAt" style="width: 20%">
                 Created At <p-sortIcon field="createdAt" />
             </th>
-            <th style="min-width: 10rem"></th>
+            <th style="width: 10%"></th>
         </tr>
     </ng-template>
 
@@ -50,9 +47,6 @@
         <tr>
             <td>{{ user.username }}</td>
             <td>{{ user.email }}</td>
-            <td>
-                <p-tag [value]="user.isOnline ? 'Online' : 'Offline'" [severity]="user.isOnline ? 'success' : 'secondary'" />
-            </td>
             <td>{{ user.createdAt | date: 'short' }}</td>
             <td>
                 <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editUser(user)" />
