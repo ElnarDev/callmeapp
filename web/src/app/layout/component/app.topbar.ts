@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { StyleClassModule } from 'primeng/styleclass';
 import { AppConfigurator } from './app.configurator';
 import { LayoutService } from '@/app/layout/service/layout.service';
+import { AuthService } from '@/app/pages/auth/auth.service';
 
 @Component({
     selector: 'app-topbar',
@@ -64,18 +65,47 @@ import { LayoutService } from '@/app/layout/service/layout.service';
 
             <div class="layout-topbar-menu hidden lg:block">
                 <div class="layout-topbar-menu-content">
-                    <button type="button" class="layout-topbar-action">
-                        <i class="pi pi-calendar"></i>
-                        <span>Calendar</span>
-                    </button>
-                    <button type="button" class="layout-topbar-action">
-                        <i class="pi pi-inbox"></i>
-                        <span>Messages</span>
-                    </button>
-                    <button type="button" class="layout-topbar-action">
-                        <i class="pi pi-user"></i>
-                        <span>Profile</span>
-                    </button>
+                    <div class="relative">
+                        <button
+                            type="button"
+                            class="layout-topbar-action gap-2 px-3"
+                            pStyleClass="@next"
+                            enterFromClass="hidden"
+                            enterActiveClass="animate-scalein"
+                            leaveToClass="hidden"
+                            leaveActiveClass="animate-fadeout"
+                            [hideOnOutsideClick]="true"
+                        >
+                            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs shrink-0">
+                                {{ userInitials }}
+                            </div>
+                            <span class="hidden md:block text-sm font-medium text-surface-700 dark:text-surface-200">{{ currentUser?.username }}</span>
+                            <i class="pi pi-chevron-down text-xs text-surface-500"></i>
+                        </button>
+                        <div class="hidden absolute right-0 top-full mt-2 w-64 bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl shadow-lg z-50 overflow-hidden">
+                            <div class="px-4 py-4 border-b border-surface-200 dark:border-surface-700">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
+                                        {{ userInitials }}
+                                    </div>
+                                    <div class="overflow-hidden">
+                                        <p class="font-semibold text-surface-900 dark:text-surface-0 text-sm truncate">{{ currentUser?.username }}</p>
+                                        <p class="text-surface-500 text-xs truncate">{{ currentUser?.email }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="px-2 py-2">
+                                <button
+                                    type="button"
+                                    class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950 cursor-pointer transition-colors"
+                                    (click)="logout()"
+                                >
+                                    <i class="pi pi-sign-out"></i>
+                                    <span>Sign Out</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -85,11 +115,25 @@ export class AppTopbar {
     items!: MenuItem[];
 
     layoutService = inject(LayoutService);
+    authService = inject(AuthService);
+
+    get currentUser() {
+        return this.authService.getCurrentUser();
+    }
+
+    get userInitials(): string {
+        const username = this.currentUser?.username ?? '';
+        return username.slice(0, 2).toUpperCase();
+    }
 
     toggleDarkMode() {
         this.layoutService.layoutConfig.update((state) => ({
             ...state,
             darkTheme: !state.darkTheme
         }));
+    }
+
+    logout() {
+        this.authService.logout();
     }
 }

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { tap } from 'rxjs';
 import { LoginRequest } from './interfaces/login-request.interface';
 import { AuthResponse } from './interfaces/auth-response.interface';
+import { ResetPasswordRequest } from './interfaces/reset-password.interface';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -36,5 +37,21 @@ export class AuthService {
 
     getAccessToken(): string | null {
         return localStorage.getItem('accessToken');
+    }
+
+    getCurrentUser(): { id: string; email: string; username: string } | null {
+        const token = this.getAccessToken();
+        if (!token) return null;
+        try {
+            const payload = token.split('.')[1];
+            const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+            return { id: decoded.sub, email: decoded.email, username: decoded.username };
+        } catch {
+            return null;
+        }
+    }
+
+    resetPassword(dto: ResetPasswordRequest) {
+        return this.http.post(`${this.baseUrl}/reset-password`, dto);
     }
 }

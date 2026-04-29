@@ -98,4 +98,9 @@ export class UsersService {
     if (!user) throw new NotFoundException(`Usuario con id ${id} no encontrado`);
     return user;
   }
+
+  // Uso interno del módulo Auth — actualiza el hash directamente sin exponer la contraseña
+  async updatePasswordHash(id: string, newHash: string): Promise<void> {
+    await this.usersRepository.update(id, { passwordHash: newHash });
+  }
 }

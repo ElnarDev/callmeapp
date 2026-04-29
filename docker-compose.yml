@@ -10,8 +10,10 @@ services:
     image: postgres:16-alpine        # Imagen oficial de PostgreSQL v16 (alpine = más liviana)
     container_name: callmeapp_postgres
     restart: unless-stopped          # Si el contenedor cae, se reinicia automáticamente
+    env_file:
+      - ./api/.env                   # Fuente única de verdad para todas las variables
     ports:
-      - "${POSTGRES_PORT}:5432"      # puerto_tu_maquina:puerto_contenedor
+      - "5432:5432"                  # puerto_tu_maquina:puerto_contenedor
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}

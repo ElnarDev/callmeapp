@@ -1,4 +1,4 @@
-﻿import { Injectable, UnauthorizedException } from '@nestjs/common';
+﻿import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,6 +7,7 @@ import * as crypto from 'crypto';
 import { UsersService } from '../users/users.service';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { LoginDto } from './dto/login.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -31,7 +32,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.generateTokens(user.id, user.email);
+    return this.generateTokens(user.id, user.email, user.username);
   }
 
   async refresh(rawToken: string) {
@@ -53,7 +54,19 @@ export class AuthService {
     await this.refreshTokenRepo.save(stored);
 
     const user = await this.usersService.findOneEntity(stored.userId);
-    return this.generateTokens(user.id, user.email);
+    return this.generateTokens(user.id, user.email, user.username);
+  }
+
+  async resetPassword(dto: ResetPasswordDto): Promise<void> {
+    const user = await this.usersService.findByUsername(dto.username);
+    if (!user) {
+      throw new NotFoundException('Username not found');
+    }
+    const newHash = crypto
+      .createHash('sha256')
+      .update(dto.newPassword)
+      .digest('hex');
+    await this.usersService.updatePasswordHash(user.id, newHash);
   }
 
   async logout(rawToken: string) {
@@ -64,8 +77,8 @@ export class AuthService {
     await this.refreshTokenRepo.update({ tokenHash }, { isRevoked: true });
   }
 
-  private async generateTokens(userId: string, email: string) {
-    const payload = { sub: userId, email };
+  private async generateTokens(userId: string, email: string, username: string) {
+    const payload = { sub: userId, email, username };
     const accessToken = this.jwtService.sign(payload);
 
     // Token opaco aleatorio — no un JWT
